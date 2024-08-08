@@ -34,10 +34,16 @@ class TestCaseTest
   include TestCase
 
   def test_running
-      test = WasRun.new("test_method")
-      raise unless test.was_run == false
-      test.run
-      raise unless test.was_run == true
+    test = WasRun.new("test_method")
+    assert test.was_run == false
+    test.run
+    assert test.was_run == true
+  end
+
+  private
+
+  def assert(truthy)
+    raise unless truthy
   end
 end
 
