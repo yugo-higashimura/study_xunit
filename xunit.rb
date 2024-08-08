@@ -30,7 +30,15 @@ class WasRun
   end
 end
 
-test = WasRun.new("test_method")
-puts test.was_run # false
-test.run
-puts test.was_run # true
+class TestCaseTest
+  include TestCase
+
+  def test_running
+      test = WasRun.new("test_method")
+      raise unless test.was_run == false
+      test.run
+      raise unless test.was_run == true
+  end
+end
+
+TestCaseTest.new("test_running").run
