@@ -6,7 +6,12 @@ module TestCase
     @test_method = test_method
   end
 
+  def setup
+    raise NotImplementedError.new("You must implement setup")
+  end
+
   def run
+    setup
     send(@test_method)
   end
 end
@@ -14,26 +19,39 @@ end
 class WasRun
   include TestCase
 
-  attr_accessor :was_run
+  attr_accessor :was_run, :was_setup
 
-  def initialize(test_method)
+  def setup
     @was_run = false
-    super(test_method)
+    @was_setup = true
   end
 
   def test_method
     @was_run = true
+  end
+
+  [:was_run, :was_setup].each do |method_name|
+    define_method("#{method_name}?", -> { method_name })
   end
 end
 
 class TestCaseTest
   include TestCase
 
+  attr_accessor :test_object
+
+  def setup
+    @test_object = WasRun.new("test_method")
+  end
+
+  def test_setup
+    @test_object.run
+    assert @test_object.was_setup?
+  end
+
   def test_running
-    test = WasRun.new("test_method")
-    assert test.was_run == false
-    test.run
-    assert test.was_run == true
+    @test_object.run
+    assert @test_object.was_run?
   end
 
   private
@@ -44,3 +62,4 @@ class TestCaseTest
 end
 
 TestCaseTest.new("test_running").run
+TestCaseTest.new("test_setup").run
