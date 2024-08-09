@@ -1,4 +1,3 @@
-
 module TestCase
   attr_accessor :test_method
 
@@ -19,39 +18,27 @@ end
 class WasRun
   include TestCase
 
-  attr_accessor :was_run, :was_setup
+  attr_accessor :log
 
   def setup
-    @was_run = false
-    @was_setup = true
+    @log = "setup"
   end
 
   def test_method
-    @was_run = true
-  end
-
-  [:was_run, :was_setup].each do |method_name|
-    define_method("#{method_name}?", -> { method_name })
+    @log += " test_method"
   end
 end
 
 class TestCaseTest
   include TestCase
 
-  attr_accessor :test_object
-
   def setup
-    @test_object = WasRun.new("test_method")
   end
 
-  def test_setup
-    @test_object.run
-    assert @test_object.was_setup?
-  end
-
-  def test_running
-    @test_object.run
-    assert @test_object.was_run?
+  def test_template_method
+    test = WasRun.new("test_method")
+    test.run
+    assert "setup test_method" == test.log
   end
 
   private
@@ -61,5 +48,4 @@ class TestCaseTest
   end
 end
 
-TestCaseTest.new("test_running").run
-TestCaseTest.new("test_setup").run
+TestCaseTest.new("test_template_method").run
