@@ -1,3 +1,24 @@
+class TestResult
+  attr_accessor :test_started_count, :test_failed_count
+
+  def initialize
+    @test_started_count = 0
+    @test_failed_count = 0
+  end
+
+  def test_started
+    @test_started_count += 1
+  end
+
+  def test_failed
+    @test_failed_count += 1
+  end
+
+  def summary
+    "#{test_started_count} run, #{test_failed_count} failed"
+  end
+end
+
 module TestCase
   attr_accessor :test_method
 
@@ -18,9 +39,16 @@ module TestCase
   end
 
   def run
+    result = TestResult.new
+    result.test_started
     setup
-    send(@test_method)
+    begin
+      send(@test_method)
+    rescue => e
+      result.test_failed
+    end
     down
+    result
   end
 end
 
@@ -37,6 +65,10 @@ class WasRun
     @log += " test_method"
   end
 
+  def test_broken_method
+    raise "test_broken_method"
+  end
+
   def down
     @log += " down"
   end
@@ -51,6 +83,16 @@ class TestCaseTest
     assert "setup test_method down" == test.log
   end
 
+  def test_result
+    test = WasRun.new("test_method")
+    assert "1 run, 0 failed" == test.run.summary
+  end
+
+  def test_failed_result
+    test = WasRun.new("test_broken_method")
+    assert "1 run, 1 failed" == test.run.summary
+  end
+
   private
 
   def assert(truthy)
@@ -58,4 +100,6 @@ class TestCaseTest
   end
 end
 
-TestCaseTest.new("test_template_method").run
+puts TestCaseTest.new("test_template_method").run.summary
+puts TestCaseTest.new("test_result").run.summary
+puts TestCaseTest.new("test_failed_result").run.summary
