@@ -29,17 +29,17 @@ class WasRun
 
   attr_reader :log
 
-  def initialize(test_method)
-    @log = ""
-    super(test_method)
+  def setup
+    @log = "setup"
   end
 
-  [:setup, :test_method, :down].each do |method|
-    define_method(method) do
-      @log += "#{method} "
-    end
+  def test_method
+    @log += " test_method"
   end
 
+  def down
+    @log += " down"
+  end
 end
 
 class TestCaseTest
@@ -48,7 +48,7 @@ class TestCaseTest
   def test_template_method
     test = WasRun.new("test_method")
     test.run
-    assert "setup test_method down " == test.log
+    assert "setup test_method down" == test.log
   end
 
   private
