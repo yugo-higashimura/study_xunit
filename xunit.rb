@@ -5,40 +5,50 @@ module TestCase
     @test_method = test_method
   end
 
+  # TestCaseTest で空のオーバーライドを強制することになり、シンプルさが失われる
+  # 処理が複雑になり、強制が必要と判断すればコメントアウトを外す
   def setup
-    raise NotImplementedError.new("You must implement setup")
+    # raise NotImplementedError.new("You must implement setup")
+  end
+
+  # TestCaseTest で空のオーバーライドを強制することになり、シンプルさが失われる
+  # 処理が複雑になり、強制が必要と判断すればコメントアウトを外す
+  def down
+    # raise NotImplementedError.new("You must implement down")
   end
 
   def run
     setup
     send(@test_method)
+    down
   end
 end
 
 class WasRun
   include TestCase
 
-  attr_accessor :log
+  attr_reader :log
 
-  def setup
-    @log = "setup"
+  def initialize(test_method)
+    @log = ""
+    super(test_method)
   end
 
-  def test_method
-    @log += " test_method"
+  [:setup, :test_method, :down].each do |method|
+    define_method(method) do
+      @log += "#{method} "
+    end
   end
+
 end
 
 class TestCaseTest
   include TestCase
 
-  def setup
-  end
-
   def test_template_method
     test = WasRun.new("test_method")
     test.run
-    assert "setup test_method" == test.log
+    assert "setup test_method down " == test.log
   end
 
   private
