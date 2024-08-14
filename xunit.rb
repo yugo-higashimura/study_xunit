@@ -1,3 +1,22 @@
+class TestSuite
+  attr_reader :tests
+
+  def initialize
+    @tests = []
+  end
+
+  def add(test)
+    @tests << test
+  end
+
+  def run(result = TestResult.new)
+    @tests.each do |test|
+      test.run(result)
+    end
+    return result
+  end
+end
+
 class TestResult
   attr_accessor :test_started_count, :test_failed_count
 
@@ -38,8 +57,7 @@ module TestCase
     # raise NotImplementedError.new("You must implement down")
   end
 
-  def run
-    result = TestResult.new
+  def run(result = TestResult.new)
     result.test_started
     setup
     begin
@@ -93,6 +111,13 @@ class TestCaseTest
     assert "1 run, 1 failed" == test.run.summary
   end
 
+  def test_suite_result
+    suite = TestSuite.new
+    suite.add(WasRun.new("test_method"))
+    suite.add(WasRun.new("test_broken_method"))
+    assert "2 run, 1 failed" == suite.run.summary
+  end
+
   private
 
   def assert(truthy)
@@ -100,6 +125,7 @@ class TestCaseTest
   end
 end
 
-puts TestCaseTest.new("test_template_method").run.summary
-puts TestCaseTest.new("test_result").run.summary
-puts TestCaseTest.new("test_failed_result").run.summary
+TestCaseTest.instance_methods(false).each do |test_method|
+  puts  "#{test_method}\n" + \
+        TestCaseTest.new(test_method).run.summary + "\n\n"
+end
