@@ -115,7 +115,8 @@ class TestCaseTest
 
   def test_failed_result
     test = WasRun.new("test_broken_method")
-    assert "1 run, 1 failed" == test.run.summary
+    assert "1 run, 1 failed" == test.run.summary \
+        && "setup down" == test.log
   end
 
   def test_suite_result
