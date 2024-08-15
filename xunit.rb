@@ -5,6 +5,13 @@ class TestSuite
     @tests = []
   end
 
+  def add_class(test)
+    test_class = Object.const_get(test)
+    test_class.instance_methods(false).each do |test_method|
+      @tests << test_class.new(test_method)
+    end
+  end
+
   def add(test)
     @tests << test
   end
@@ -118,6 +125,12 @@ class TestCaseTest
     assert "2 run, 1 failed" == suite.run.summary
   end
 
+  def test_class_suite_result
+    suite = TestSuite.new
+    suite.add_class("WasRun")
+    assert "5 run, 1 failed" == suite.run.summary
+  end
+
   private
 
   def assert(truthy)
@@ -125,7 +138,6 @@ class TestCaseTest
   end
 end
 
-TestCaseTest.instance_methods(false).each do |test_method|
-  puts  "#{test_method}\n" + \
-        TestCaseTest.new(test_method).run.summary + "\n\n"
-end
+suite = TestSuite.new
+suite.add_class(TestCaseTest.name)
+puts suite.run.summary
