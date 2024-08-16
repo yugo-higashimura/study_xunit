@@ -66,8 +66,8 @@ module TestCase
 
   def run(result = TestResult.new)
     result.test_started
-    setup
     begin
+      setup
       send(@test_method)
     rescue => e
       result.test_failed
@@ -82,20 +82,19 @@ class WasRun
 
   attr_reader :log
 
-  def setup
-    @log = "setup"
+  def initialize(test_method)
+    super(test_method)
+    @log = ""
   end
 
-  def test_method
-    @log += " test_method"
+  %i(setup test_method down).each do |method_name|
+    define_method(method_name) do
+      @log += "#{method_name} "
+    end
   end
 
   def test_broken_method
     raise "test_broken_method"
-  end
-
-  def down
-    @log += " down"
   end
 end
 
@@ -105,7 +104,7 @@ class TestCaseTest
   def test_template_method
     test = WasRun.new("test_method")
     test.run
-    assert "setup test_method down" == test.log
+    assert "setup test_method down " == test.log
   end
 
   def test_result
@@ -116,7 +115,7 @@ class TestCaseTest
   def test_failed_result
     test = WasRun.new("test_broken_method")
     assert "1 run, 1 failed" == test.run.summary \
-        && "setup down" == test.log
+        && "setup down " == test.log
   end
 
   def test_suite_result
@@ -132,6 +131,14 @@ class TestCaseTest
     assert "5 run, 1 failed" == suite.run.summary
   end
 
+  def test_broken_setup
+    test = WasRun.new("test_method")
+    test.define_singleton_method(:setup) do
+      raise "broken setup"
+    end
+    assert "1 run, 1 failed" == test.run.summary \
+        && "down " == test.log
+  end
   private
 
   def assert(truthy)
