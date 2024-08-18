@@ -1,30 +1,3 @@
-class TestSuite
-
-  def initialize
-    @tests = []
-  end
-
-  def add_class(test)
-    test_class = Object.const_get(test)
-    test_class.instance_methods(false).each do |test_method|
-      @tests << test_class.new(test_method)
-    end
-    self
-  end
-
-  def add(test)
-    @tests << test
-    self
-  end
-
-  def run(result = TestResult.new)
-    @tests.each do |test|
-      test.run(result)
-    end
-    result
-  end
-end
-
 class TestResult
 
   def initialize
@@ -72,6 +45,32 @@ class TestCase
       result.test_failed
     end
     down
+    result
+  end
+end
+
+class TestSuite
+
+  def initialize
+    @tests = []
+  end
+
+  def add(test)
+    if test.is_a?(Class)
+      test_class = Object.const_get(test.name)
+      test_class.instance_methods(false).each do |test_method|
+        @tests << test_class.new(test_method)
+      end
+    else
+      @tests << test
+    end
+    self
+  end
+
+  def run(result = TestResult.new)
+    @tests.each do |test|
+      test.run(result)
+    end
     result
   end
 end
@@ -124,7 +123,7 @@ class TestCaseTest < TestCase
 
   def test_class_suite_result
     suite = TestSuite.new
-    suite.add_class(WasRun.name)
+    suite.add(WasRun)
     assert "5 run, 1 failed" == suite.run.summary
   end
 
@@ -145,5 +144,5 @@ class TestCaseTest < TestCase
 end
 
 suite = TestSuite.new
-suite.add_class(TestCaseTest.name)
+suite.add(TestCaseTest)
 puts suite.run.summary
