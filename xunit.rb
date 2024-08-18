@@ -1,5 +1,4 @@
 class TestSuite
-  attr_reader :tests
 
   def initialize
     @tests = []
@@ -10,22 +9,23 @@ class TestSuite
     test_class.instance_methods(false).each do |test_method|
       @tests << test_class.new(test_method)
     end
+    self
   end
 
   def add(test)
     @tests << test
+    self
   end
 
   def run(result = TestResult.new)
     @tests.each do |test|
       test.run(result)
     end
-    return result
+    result
   end
 end
 
 class TestResult
-  attr_accessor :test_started_count, :test_failed_count
 
   def initialize
     @test_started_count = 0
@@ -41,12 +41,11 @@ class TestResult
   end
 
   def summary
-    "#{test_started_count} run, #{test_failed_count} failed"
+    "#{@test_started_count} run, #{@test_failed_count} failed"
   end
 end
 
-module TestCase
-  attr_accessor :test_method
+class TestCase
 
   def initialize(test_method)
     @test_method = test_method
@@ -77,8 +76,7 @@ module TestCase
   end
 end
 
-class WasRun
-  include TestCase
+class WasRun < TestCase
 
   attr_reader :log
 
@@ -98,8 +96,7 @@ class WasRun
   end
 end
 
-class TestCaseTest
-  include TestCase
+class TestCaseTest < TestCase
 
   def test_template_method
     test = WasRun.new("test_method")
@@ -121,13 +118,13 @@ class TestCaseTest
   def test_suite_result
     suite = TestSuite.new
     suite.add(WasRun.new("test_method"))
-    suite.add(WasRun.new("test_broken_method"))
+         .add(WasRun.new("test_broken_method"))
     assert "2 run, 1 failed" == suite.run.summary
   end
 
   def test_class_suite_result
     suite = TestSuite.new
-    suite.add_class("WasRun")
+    suite.add_class(WasRun.name)
     assert "5 run, 1 failed" == suite.run.summary
   end
 
@@ -139,6 +136,7 @@ class TestCaseTest
     assert "1 run, 1 failed" == test.run.summary \
         && "down " == test.log
   end
+
   private
 
   def assert(truthy)
