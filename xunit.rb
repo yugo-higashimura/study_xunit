@@ -52,24 +52,26 @@ end
 class TestSuite
 
   def initialize
-    @tests = []
+    @test_case_instances = []
   end
 
-  def add(test)
-    if test.is_a?(Class)
-      test_class = Object.const_get(test.name)
-      test_class.instance_methods(false).each do |test_method|
-        @tests << test_class.new(test_method)
+  def add(test_case)
+    if test_case.is_a?(Class)
+      # add class
+      test_case_class = Object.const_get(test_case.name)
+      test_case_class.instance_methods(false).each do |method|
+        @test_case_instances << test_case_class.new(method)
       end
     else
-      @tests << test
+      # add instance
+      @test_case_instances << test_case
     end
     self
   end
 
   def run(result = TestResult.new)
-    @tests.each do |test|
-      test.run(result)
+    @test_case_instances.each do |test_case|
+      test_case.run(result)
     end
     result
   end
